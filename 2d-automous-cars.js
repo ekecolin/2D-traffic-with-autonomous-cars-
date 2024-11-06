@@ -7,6 +7,11 @@ let cellSize = 35;  // Cell size in pixels
 let grid = [];  // 2D array to represent the grid layout (0 = street, 1 = wall)
 let cars = [];  // Array to keep track of cars
 let visitedCells = new Map(); // Global variable to track visited cells
+let globalTimeStep = 0; // Global time step to control movement
+
+// Background noise to simulate traffic
+const MUSICFILE = '/uploads/colin110/Carandtrafficsoundeffects.mp3';
+AB.backgroundMusic(MUSICFILE);
 
 // Setup function called once to set up canvas and simulation
 function setup() {
@@ -37,11 +42,16 @@ function setup() {
 function draw() {
   background(255);
   drawGrid(); 
+  
+  // Increment global time step to control when each car can move
+  globalTimeStep++;
 
   // Update, move, and display each car
   for (let car of cars) {
     car.update();
-    car.move();
+    if (globalTimeStep % 30 === 0) { // Move each car once every 30 frames
+        car.move();
+    }
     car.display();
   }
 }
@@ -74,9 +84,10 @@ class Car {
     this.destination = createVector(destX, destY); // cars destination
     this.path = [];  // Holds the calculated path to the destination
     this.recalculatePath = true;  // Flag to trigger path recalculation
-    this.waitCounter = 0;  // Counter for waiting behavior if blocked
+    this.waitCounter = 0;  // Counter for waiting behavior if blocked /////////////
     this.reachedDestination = false; // Flag to track if the destination is reached
     this.id = int(random(1000)); // Unique ID to track each car
+    this.visited = new Set(); // Track previously visited cells
 
     // Cooldown property to limit frequent recalculations
     this.recalculationCooldown = 0; // Cooldown frames before recalculating path again
@@ -89,11 +100,11 @@ class Car {
     if (this.recalculatePath || this.path.length === 0) {
       // Only recalculate if cooldown has expired
       if (this.recalculationCooldown <= 0) {
-        visitedCells.delete(this.position.toString());  // Remove from visited
+        visitedCells.delete(this.position.toString());  // Remove from visited /////////////////
         if (this.position.dist(this.destination) >= 1) {  // Check if car is not already at destination
           this.calculatePath();
           this.recalculatePath = false;  // Disable recalculation until needed
-          this.waitCounter = 0;  // Reset wait counter when recalculating
+          this.waitCounter = 0;  // Reset wait counter when recalculating ///////////
           this.recalculationCooldown = this.cooldownFrames;  // Set cooldown after recalculating
         } else {
           this.path = [];  // Clear path when destination is reached
@@ -268,6 +279,6 @@ class Car {
     noStroke();
     rect(this.position.x * cellSize, this.position.y * cellSize, cellSize, cellSize);
     
-    strokeWeight(1);  // Reset stroke weight for
+    strokeWeight(1);  // Reset stroke weight
   }
 }
